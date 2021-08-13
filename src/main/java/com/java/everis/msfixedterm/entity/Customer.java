@@ -11,24 +11,17 @@ import javax.validation.constraints.NotNull;
 @Data
 public class Customer {
 
-    @Id
     String id;
 
-    @NotEmpty
     String name;
 
-    @NotEmpty
     String lastName;
 
-    @Valid
     TypeCustomer typeCustomer;
 
-    @NotNull
     String dni;
 
-    @NotNull
     Integer age;
 
-    @NotNull
     String gender;
 }

@@ -19,6 +19,8 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import javax.validation.Valid;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
@@ -30,19 +32,8 @@ import java.util.logging.Logger;
 @RequestMapping("/fixedTerm")
 public class FixedTermController {
 
-
-    WebClient webClient = WebClient.create("http://localhost:8013/customer");
-
-    @Autowired
-    private Environment env;
-
     @Autowired
     FixedTermService fixedTermService ;
-
-
-    @Value("${configuracion.texto}")
-    private String texto;
-
 
     @GetMapping("/list")
     public Flux<FixedTerm> list(){
@@ -55,36 +46,28 @@ public class FixedTermController {
     }
 
     @PostMapping("/create")
-    public Mono<ResponseEntity<FixedTerm>> create(@RequestBody FixedTerm fixedTerm){
+    public Mono<ResponseEntity<FixedTerm>> create(@Valid @RequestBody FixedTerm fixedTerm){
 
-        Mono<Customer> customer = webClient.get().uri("/find/{id}", fixedTerm.getCustomer().getId())
-                                        .accept(MediaType.APPLICATION_JSON)
-                                        .retrieve()
-                                        .bodyToMono(Customer.class);  // EXISTE EL CLIENTE?
-
-        return fixedTermService.findCustomerAccountBank(fixedTerm.getCustomer().getId()) //Mono<Long>
-                .filter(count ->  count <1 )
-                .flatMap(p -> {
-                    System.out.println("Convierto el Long en Customer");
-                    return customer; // Long -> Customer
-                }) // Mono<Customer> , Solo si existe
-                .filter(c -> {
-                    return c.getTypeCustomer().equals(TypeCustomer.PERSONAL)&&(fixedTerm.getHolders() != null & fixedTerm.getHolders().size()>0);
-                })
-                .map(c ->{
-                    return fixedTerm;
-                })
-                .flatMap(s -> fixedTermService.create(s))
-                .map(SavedfixedTerm ->{
-                    return new ResponseEntity<>(SavedfixedTerm, HttpStatus.CREATED);
-                })
-                .defaultIfEmpty(new ResponseEntity<>(HttpStatus.BAD_REQUEST));
-
+        return fixedTermService.findCustomerById(fixedTerm.getCustomer().getId())
+                .filter(customer -> customer.getTypeCustomer().getValue().equals(TypeCustomer.EnumTypeCustomer.PERSONAL))
+                .flatMap(customer -> fixedTermService.countCustomerAccountBank(customer.getId())
+                                    .filter(count ->  count <1)
+                                    .flatMap(count -> {
+                                        fixedTerm.setCustomer(customer);
+                                        fixedTerm.setBalance(fixedTerm.getBalance() != null ? fixedTerm.getBalance() : 0.0);
+                                        fixedTerm.setLimitDeposits(1);
+                                        fixedTerm.setLimitDraft(1);
+                                        fixedTerm.setDate(LocalDateTime.now());
+                                        return fixedTermService.create(fixedTerm)
+                                                .map(ft -> new ResponseEntity<>(ft, HttpStatus.CREATED));
+                                    })
+                        )
+                        .defaultIfEmpty(new ResponseEntity<>(HttpStatus.BAD_REQUEST));
 
     }
 
     @PutMapping("/update")
-    public Mono<ResponseEntity<FixedTerm>> update(@RequestBody FixedTerm c) {
+    public Mono<ResponseEntity<FixedTerm>> update(@Valid @RequestBody FixedTerm c) {
         return fixedTermService.update(c)
                 .filter(sa -> sa.getBalance()>=0)
                 .map(savedFixedTerm -> new ResponseEntity<>(savedFixedTerm, HttpStatus.CREATED))
@@ -100,22 +83,5 @@ public class FixedTermController {
     }
 
 
-    //  Para obtener configuracion
-
-    @GetMapping("/obtener-config")
-    public ResponseEntity<?> obtenerConfig(@Value("${server.port}") String puerto){
-
-
-        Map<String, String> json = new HashMap<>();
-        json.put("texto", texto);
-        json.put("puerto", puerto);
-
-        if(env.getActiveProfiles().length>0 && env.getActiveProfiles()[0].equals("dev")) {
-            json.put("autor.nombre", env.getProperty("configuracion.autor.nombre"));
-            json.put("autor.email", env.getProperty("configuracion.autor.email"));
-        }
-
-        return new ResponseEntity<Map<String, String>>(json, HttpStatus.OK);
-    }
 }
 

@@ -1,15 +1,20 @@
 package com.java.everis.msfixedterm.service.impl;
 
+import com.java.everis.msfixedterm.entity.Customer;
 import com.java.everis.msfixedterm.entity.FixedTerm;
 import com.java.everis.msfixedterm.repository.FixedTermRepository;
 import com.java.everis.msfixedterm.service.FixedTermService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Service
 public class FixedTermServiceImpl implements FixedTermService {
+
+    WebClient webClient = WebClient.create("http://localhost:8013/customer");
 
     @Autowired
     FixedTermRepository fixedTermRepository ;
@@ -45,7 +50,15 @@ public class FixedTermServiceImpl implements FixedTermService {
     }
 
     @Override
-    public Mono<Long> findCustomerAccountBank(String id) {
-        return fixedTermRepository.findByCustomerId(id);
+    public Mono<Long> countCustomerAccountBank(String id) {
+        return fixedTermRepository.findByCustomerId(id).count();
+    }
+
+    @Override
+    public Mono<Customer> findCustomerById(String id) {
+        return webClient.get().uri("/find/{id}", id)
+                .accept(MediaType.APPLICATION_JSON)
+                .retrieve()
+                .bodyToMono(Customer.class);
     }
 }

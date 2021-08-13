@@ -19,21 +19,33 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class FixedTerm {
-
-    private Customer customer;
-
-    private String cardNumber;
+    @Id
+    private String id;
 
     @NotNull
+    private Customer customer;
+
+    @NotNull
+    private String cardNumber;
+
     private List<Person> holders;
 
     private List<Person> signers;
 
-    @NotNull
     private Double balance;
 
+    private Integer limitDeposits;
+
+    private Integer limitDraft;
+
     @NotNull
-    private Integer limitMovements;
+    private LocalDate allowDateTransaction;
+
+    @NotNull
+    private Integer freeTransactions;
+
+    @NotNull
+    private Double commissionTransactions;
 
     private LocalDateTime date;
 

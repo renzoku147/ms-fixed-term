@@ -1,5 +1,6 @@
 package com.java.everis.msfixedterm.service;
 
+import com.java.everis.msfixedterm.entity.Customer;
 import com.java.everis.msfixedterm.entity.FixedTerm;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -16,5 +17,7 @@ public interface FixedTermService {
 
     public Mono<Boolean> delete(String id);
 
-    Mono<Long> findCustomerAccountBank(String id);
+    Mono<Long> countCustomerAccountBank(String id);
+
+    Mono<Customer> findCustomerById(String id);
 }
