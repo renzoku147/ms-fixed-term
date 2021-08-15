@@ -14,7 +14,7 @@ import reactor.core.publisher.Mono;
 @Service
 public class FixedTermServiceImpl implements FixedTermService {
 
-    WebClient webClient = WebClient.create("http://localhost:8013/customer");
+    WebClient webClient = WebClient.create("http://localhost:8887/ms-customer/customer/customer");
 
     @Autowired
     FixedTermRepository fixedTermRepository ;

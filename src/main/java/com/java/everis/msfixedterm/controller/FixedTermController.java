@@ -49,7 +49,7 @@ public class FixedTermController {
     public Mono<ResponseEntity<FixedTerm>> create(@Valid @RequestBody FixedTerm fixedTerm){
 
         return fixedTermService.findCustomerById(fixedTerm.getCustomer().getId())
-                .filter(customer -> customer.getTypeCustomer().getValue().equals(TypeCustomer.EnumTypeCustomer.PERSONAL))
+                .filter(customer -> customer.getTypeCustomer().getValue().equals(TypeCustomer.EnumTypeCustomer.PERSONAL) & fixedTerm.getBalance() >= 0)
                 .flatMap(customer -> fixedTermService.countCustomerAccountBank(customer.getId())
                                     .filter(count ->  count <1)
                                     .flatMap(count -> {
@@ -67,11 +67,23 @@ public class FixedTermController {
     }
 
     @PutMapping("/update")
-    public Mono<ResponseEntity<FixedTerm>> update(@Valid @RequestBody FixedTerm c) {
-        return fixedTermService.update(c)
-                .filter(sa -> sa.getBalance()>=0)
-                .map(savedFixedTerm -> new ResponseEntity<>(savedFixedTerm, HttpStatus.CREATED))
-                .defaultIfEmpty(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    public Mono<ResponseEntity<FixedTerm>> update(@Valid @RequestBody FixedTerm fixedTerm) {
+
+        return fixedTermService.findById(fixedTerm.getId())
+                .flatMap(ftDB -> fixedTermService.findCustomerById(fixedTerm.getCustomer().getId())
+                                .filter(customer -> customer.getTypeCustomer().getValue().equals(TypeCustomer.EnumTypeCustomer.PERSONAL) & fixedTerm.getBalance() >= 0)
+                                .flatMap(customer -> {
+                                    fixedTerm.setCustomer(customer);
+                                    fixedTerm.setBalance(fixedTerm.getBalance() != null ? fixedTerm.getBalance() : 0.0);
+                                    fixedTerm.setLimitDeposits(1);
+                                    fixedTerm.setLimitDraft(1);
+                                    fixedTerm.setDate(LocalDateTime.now());
+                                    return fixedTermService.create(fixedTerm)
+                                            .map(ft -> new ResponseEntity<>(ft, HttpStatus.CREATED));
+                                })
+
+                        )
+                .defaultIfEmpty(new ResponseEntity<>(HttpStatus.BAD_REQUEST));
     }
 
     @DeleteMapping("/delete/{id}")

@@ -32,6 +32,7 @@ public class FixedTerm {
 
     private List<Person> signers;
 
+    @NotNull
     private Double balance;
 
     private Integer limitDeposits;
