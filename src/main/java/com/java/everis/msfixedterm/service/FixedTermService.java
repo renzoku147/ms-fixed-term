@@ -20,4 +20,6 @@ public interface FixedTermService {
     Mono<Long> countCustomerAccountBank(String id);
 
     Mono<Customer> findCustomerById(String id);
+
+    public Mono<FixedTerm> findByCardNumber(String numberAccount);
 }

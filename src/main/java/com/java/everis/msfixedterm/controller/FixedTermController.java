@@ -19,11 +19,13 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import javax.swing.text.html.Option;
 import javax.validation.Valid;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.logging.Logger;
 
 @RefreshScope
@@ -94,6 +96,16 @@ public class FixedTermController {
                 .defaultIfEmpty(new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
+    @GetMapping("/findByAccountNumber/{numberAccount}")
+    public Mono<FixedTerm> findByAccountNumber(@PathVariable String numberAccount){
+        return fixedTermService.findByCardNumber(numberAccount);
+    }
 
+    @PutMapping("/updateTransference")
+    public Mono<ResponseEntity<FixedTerm>> updateForTransference(@Valid @RequestBody FixedTerm fixedTerm) {
+        return fixedTermService.create(fixedTerm)
+                .filter(customer -> fixedTerm.getBalance() >= 0)
+                .map(ft -> new ResponseEntity<>(ft, HttpStatus.CREATED));
+    }
 }
 

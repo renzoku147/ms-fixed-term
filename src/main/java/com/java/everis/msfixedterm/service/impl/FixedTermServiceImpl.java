@@ -61,4 +61,11 @@ public class FixedTermServiceImpl implements FixedTermService {
                 .retrieve()
                 .bodyToMono(Customer.class);
     }
+
+    @Override
+    public Mono<FixedTerm> findByCardNumber(String numberAccount) {
+        return fixedTermRepository.findByCardNumber(numberAccount);
+    }
+
+
 }
