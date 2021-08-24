@@ -4,10 +4,10 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -18,7 +18,7 @@ import java.util.List;
 @Document("FixedTerm")
 @AllArgsConstructor
 @NoArgsConstructor
-public class FixedTerm {
+public class FixedTerm implements BankAccount{
     @Id
     private String id;
 
@@ -26,7 +26,7 @@ public class FixedTerm {
     private Customer customer;
 
     @NotNull
-    private String cardNumber;
+    private String accountNumber;
 
     private List<Person> holders;
 
@@ -47,6 +47,8 @@ public class FixedTerm {
 
     @NotNull
     private Double commissionTransactions;
+    
+    private DebitCard debitCard;
 
     private LocalDateTime date;
 
